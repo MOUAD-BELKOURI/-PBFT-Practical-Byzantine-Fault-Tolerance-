@@ -1,208 +1,215 @@
-# Implémentation et expérimentation du protocole PBFT avec MPI
+```html
+<h1 align="center">🚀 Implémentation et expérimentation du protocole PBFT avec MPI</h1>
 
-**Auteur : MOUAD BELKOURI**
+<p align="center">
+  <strong>👨‍💻 MOUAD BELKOURI</strong>  
+</p>
 
----
+<p align="center">
+  <img src="https://img.shields.io/badge/Language-C-blue"/>
+  <img src="https://img.shields.io/badge/Communication-MPI-green"/>
+  <img src="https://img.shields.io/badge/Consensus-PBFT-red"/>
+</p>
 
-## 1. Introduction
+<hr>
 
-Les systèmes distribués modernes sont de plus en plus utilisés dans des contextes critiques tels que les systèmes financiers, les bases de données distribuées, les réseaux blockchain et les infrastructures cloud. Dans ces environnements, la tolérance aux fautes est un enjeu majeur, en particulier face aux fautes dites *byzantines*, où certains nœuds peuvent se comporter de manière arbitraire ou malveillante.
+<h2>📌 1. Introduction</h2>
 
-Le protocole **PBFT (Practical Byzantine Fault Tolerance)**, proposé par Castro et Liskov, constitue une solution efficace permettant d’assurer le consensus dans un système distribué même en présence de fautes byzantines. Contrairement aux approches basées sur la preuve de travail, PBFT offre de bonnes performances et une latence réduite dans des environnements à nombre de nœuds limité.
+<p>
+Les systèmes distribués modernes sont de plus en plus utilisés dans des contextes critiques 
+tels que les systèmes financiers, les bases de données distribuées, les réseaux blockchain 
+et les infrastructures cloud.  
+</p>
 
-L’objectif de ce projet est d’implémenter et d’expérimenter le protocole PBFT en utilisant **MPI (Message Passing Interface)** afin de simuler la communication entre pairs dans un système distribué.
+<p>
+Le protocole <b>PBFT (Practical Byzantine Fault Tolerance)</b> permet d’assurer un consensus 
+même en présence de nœuds malveillants (fautes byzantines).  
+</p>
 
----
+<p>
+🎯 <b>Objectif du projet :</b> Implémenter et tester PBFT en utilisant <b>MPI</b> pour simuler 
+la communication entre processus distribués.
+</p>
 
-## 2. Problématique du consensus distribué
+<p align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Byzantine_generals_problem.svg" width="400"/>
+</p>
 
-Dans un système distribué, le consensus consiste à faire en sorte que tous les nœuds corrects s’accordent sur une même valeur, malgré la présence de défaillances. Le problème devient plus complexe lorsque l’on considère les fautes byzantines, où un nœud peut envoyer des messages incohérents ou incorrects.
+<hr>
 
-Le théorème fondamental de PBFT stipule que pour tolérer **f** fautes byzantines, le système doit contenir au minimum :
+<h2>🧠 2. Problème du consensus distribué</h2>
 
-```
+<p>
+Pour tolérer <b>f</b> fautes byzantines, PBFT exige :
+</p>
+
+<pre>
 N = 3f + 1
-```
+</pre>
 
-Cette condition garantit que les nœuds corrects sont majoritaires et peuvent imposer un consensus fiable.
+<p>
+Cela garantit qu’une majorité de nœuds honnêtes existe toujours.
+</p>
 
----
+<hr>
 
-## 3. Présentation du protocole PBFT
+<h2>⚙️ 3. Phases du protocole PBFT</h2>
 
-Le protocole PBFT repose sur un modèle **client–serveur** avec un ensemble de replicas, parmi lesquels un nœud est désigné comme **primary**.
+<ul>
+  <li>🟡 <b>PRE-PREPARE</b></li>
+  <li>🟠 <b>PREPARE</b></li>
+  <li>🔴 <b>COMMIT</b></li>
+  <li>🟢 <b>REPLY</b></li>
+</ul>
 
-Le protocole se déroule en plusieurs phases bien définies :
+<p align="center">
+  <img src="https://miro.medium.com/max/1400/1*LmgYJpzb12Z0hU4bP8s1-g.png" width="500"/>
+</p>
 
-1. **PRE-PREPARE**
-2. **PREPARE**
-3. **COMMIT**
-4. **REPLY**
+<hr>
 
-Chaque phase implique des échanges de messages permettant de vérifier la cohérence des requêtes et d’atteindre un consensus.
+<h2>🏗️ 4. Architecture du système</h2>
 
----
+<h3>👥 Répartition des rôles</h3>
 
-## 4. Architecture générale de l’implémentation
+<ul>
+  <li>🧑‍💻 <b>Processus 0</b> → Client</li>
+  <li>👑 <b>Processus 1</b> → Primary</li>
+  <li>🖥️ <b>Processus 2 à N</b> → Replicas</li>
+</ul>
 
-Dans cette implémentation, **MPI** est utilisé comme couche de communication entre les différents processus.
+<h3>📋 Hypothèses</h3>
 
-### 4.1 Répartition des rôles
+<ul>
+  <li>Vue fixe</li>
+  <li>Primary fixe</li>
+  <li>Une seule requête client</li>
+  <li>Communication fiable avec MPI</li>
+</ul>
 
-* **Processus 0 : Client**
-* **Processus 1 : Primary**
-* **Processus 2 à N : Replicas (backups)**
+<hr>
 
-### 4.2 Hypothèses
+<h2>📩 5. Types de messages</h2>
 
-* Vue fixe (`view = 0`)
-* Primary fixe
-* Une seule requête client
-* Communication fiable assurée par MPI
+<ul>
+  <li>📨 <b>request_t</b> : requête client</li>
+  <li>📬 <b>pre_prepare_t</b> : message du primary</li>
+  <li>🔄 <b>prepare_t</b> : échanges entre replicas</li>
+  <li>✅ <b>commit_t</b> : validation finale</li>
+  <li>📤 <b>reply_t</b> : réponse au client</li>
+</ul>
 
----
+<hr>
 
-## 5. Description détaillée des messages
+<h2>🔁 6. Déroulement du protocole</h2>
 
-Plusieurs types de messages sont définis pour implémenter PBFT :
+<h3>🟡 PRE-PREPARE</h3>
+<p>Le client envoie une requête → le primary diffuse.</p>
 
-* `request_t` : requête envoyée par le client
-* `pre_prepare_t` : message PRE-PREPARE envoyé par le primary
-* `prepare_t` : message PREPARE échangé entre replicas
-* `commit_t` : message COMMIT échangé entre replicas
-* `reply_t` : réponse envoyée au client
+<h3>🟠 PREPARE</h3>
+<p>Les replicas échangent des messages PREPARE.</p>
 
-Chaque message contient les champs nécessaires à la vérification de la cohérence (vue, numéro de séquence, type de requête, identifiant du processus).
+<h3>🔴 COMMIT</h3>
+<p>Validation finale par quorum.</p>
 
----
+<h3>🟢 REPLY</h3>
+<p>Les replicas répondent au client.</p>
 
-## 6. Déroulement du protocole
+<p align="center">
+  <img src="https://www.researchgate.net/publication/341324088/figure/fig1/AS:892155316838915@1589565131120/The-PBFT-protocol-phases.png" width="500"/>
+</p>
 
-### 6.1 Phase PRE-PREPARE
+<hr>
 
-Le client envoie une requête au primary. Celui-ci attribue un numéro de séquence et diffuse un message PRE-PREPARE à tous les replicas.
+<h2>💻 7. Implémentation</h2>
 
-### 6.2 Phase PREPARE
+<p>Langage : <b>C</b> + <b>MPI</b></p>
 
-Chaque replica vérifie la validité du message PRE-PREPARE puis diffuse un message PREPARE à l’ensemble des autres replicas. La condition `prepared()` est satisfaite lorsque **au moins 2f messages PREPARE valides** sont reçus.
+<ul>
+  <li>⚙️ <code>execute()</code> : exécute la requête</li>
+  <li>📊 <code>prepared()</code> : vérifie le quorum</li>
+  <li>✔️ <code>committed_local()</code> : validation locale</li>
+</ul>
 
-### 6.3 Phase COMMIT
+<hr>
 
-Après la phase PREPARE, chaque replica envoie un message COMMIT. La condition `committed_local()` est satisfaite lorsqu’**au moins 2f+1 messages COMMIT valides** sont reçus.
+<h2>🧪 8. Expérimentations</h2>
 
-### 6.4 Phase REPLY
+<h3>▶️ Lancer le programme</h3>
 
-Une fois la requête exécutée, chaque replica envoie une réponse au client. Le client valide le consensus lorsqu’il reçoit **au moins f+1 réponses identiques**.
-
----
-
-## 7. Implémentation technique
-
-L’implémentation est réalisée en **C avec MPI**. Des types MPI personnalisés sont définis afin de transmettre efficacement les structures de données.
-
-Les fonctions principales incluent :
-
-* `execute()` : exécution déterministe de la requête
-* `prepared()` : vérification du quorum PREPARE
-* `committed_local()` : vérification du quorum COMMIT
-
----
-
-## 8. Expérimentations et résultats
-
-### 8.1 Environnement de test
-
-Les expérimentations ont été réalisées sur une machine Linux (Ubuntu) en utilisant **OpenMPI**.
-
-L’exécution du programme se fait via la commande suivante :
-
-```
+<pre>
 mpirun --oversubscribe -np X ./pbft_mpi
+</pre>
+
+<h3>📊 Test 1 : 5 processus (f = 1)</h3>
+
+<ul>
+  <li>✅ PRE-PREPARE reçu</li>
+  <li>✅ PREPARE échangé</li>
+  <li>✅ COMMIT validé</li>
+  <li>✅ Consensus atteint</li>
+</ul>
+
+<h3>📊 Test 2 : 7 processus</h3>
+
+<ul>
+  <li>🔝 Plus de redondance</li>
+  <li>🔒 Consensus toujours correct</li>
+</ul>
+
+<hr>
+
+<h2>📚 9. Comparaison</h2>
+
+<table border="1" cellpadding="10">
+  <tr>
+    <th>Protocole</th>
+    <th>Avantages</th>
+    <th>Limites</th>
+  </tr>
+  <tr>
+    <td>PBFT</td>
+    <td>Résiste aux attaques byzantines</td>
+    <td>Coûteux en communication</td>
+  </tr>
+  <tr>
+    <td>Paxos</td>
+    <td>Simple</td>
+    <td>Pas byzantin</td>
+  </tr>
+  <tr>
+    <td>Raft</td>
+    <td>Très lisible</td>
+    <td>Pas byzantin</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>🚧 10. Limites & Améliorations</h2>
+
+<ul>
+  <li>⚠️ Pas de view-change</li>
+  <li>⚠️ Pas de signatures cryptographiques</li>
+  <li>⚠️ Pas de nœuds byzantins réels</li>
+</ul>
+
+<h3>🚀 Perspectives</h3>
+
+<ul>
+  <li>🔄 Implémenter le view-change</li>
+  <li>🔐 Ajouter des signatures</li>
+  <li>🤖 Simuler des nœuds malveillants</li>
+</ul>
+
+<hr>
+
+<h2>🎯 Conclusion</h2>
+
+<p>
+Ce projet a démontré qu’il est possible d’implémenter PBFT avec MPI et d’obtenir un consensus fiable
+dans un système distribué. Il constitue une excellente base pour des travaux avancés en systèmes distribués.
+</p>
+
+<p align="center">⭐ <b>N’hésite pas à star ce projet !</b> ⭐</p>
 ```
-
-où `X` représente le nombre total de processus MPI (1 client + N replicas).
-
-### 8.2 Test avec p = 5 processus (f = 1)
-
-Dans ce scénario, le système contient **1 client et 4 replicas**. Selon la formule PBFT `N = 3f + 1`, le système peut tolérer jusqu’à **1 faute byzantine**.
-
-Résultats observés :
-
-* Tous les replicas reçoivent correctement le message PRE-PREPARE.
-* Les messages PREPARE sont échangés entre les replicas.
-* La condition `prepared()` est satisfaite.
-* La condition `committed_local()` est satisfaite.
-* Chaque replica exécute la requête et envoie un REPLY au client.
-* Le client reçoit au moins `f+1` réponses identiques et valide le consensus.
-
-### 8.3 Test avec p = 7 processus (f = 1)
-
-Dans ce test, le nombre de replicas est porté à 6.
-
-Les résultats confirment que :
-
-* Le protocole reste correct même avec un plus grand nombre de nœuds.
-* Les quorums PBFT sont respectés.
-* Le consensus est atteint sans ambiguïté.
-
-Ces tests démontrent la scalabilité relative du protocole PBFT pour un nombre modéré de nœuds.
-
----
-
-## 9. Analyse détaillée du code source
-
-### 9.1 Organisation générale
-
-Le code est structuré autour de trois rôles distincts : **client, primary et replicas**. Chaque rôle est implémenté par une fonction dédiée.
-
-### 9.2 Gestion des messages
-
-Les structures C représentent fidèlement les messages PBFT. Des types MPI personnalisés sont créés pour assurer une communication correcte entre processus.
-
-### 9.3 Vérification des quorums
-
-Les fonctions `prepared()` et `committed_local()` implémentent les conditions théoriques du protocole PBFT.
-
-### 9.4 Exécution déterministe
-
-La fonction `execute()` garantit que tous les replicas corrects appliquent la même opération dans le même ordre.
-
----
-
-## 10. Comparaison avec Raft et Paxos
-
-### 10.1 PBFT vs Paxos
-
-Paxos tolère uniquement les fautes par arrêt (*crash faults*) et ne prend pas en compte les comportements byzantins. PBFT est donc plus robuste mais aussi plus coûteux en communication.
-
-### 10.2 PBFT vs Raft
-
-Raft simplifie la compréhension du consensus mais reste limité aux fautes non byzantines. PBFT est mieux adapté aux environnements hostiles.
-
----
-
-## 11. Limites et perspectives
-
-Cette implémentation est volontairement simplifiée à des fins pédagogiques. Elle ne prend pas en compte :
-
-* le mécanisme de **view-change**,
-* les **signatures cryptographiques**,
-* les **nœuds réellement byzantins**,
-* la gestion de **multiples requêtes concurrentes**.
-
-### Perspectives d’amélioration
-
-* Implémentation du **view-change**
-* Ajout de **signatures cryptographiques**
-* Simulation de **nœuds byzantins réels**
-* Support de **requêtes concurrentes**
-
----
-
-## 12. Conclusion
-
-Ce projet a permis d’implémenter avec succès le protocole **PBFT** en s’appuyant sur **MPI** comme infrastructure de communication distribuée.
-
-Les expérimentations ont démontré que le système atteint correctement le consensus, conformément au modèle `N = 3f + 1`.
-
-Ce travail constitue une base solide pour des améliorations futures et une compréhension approfondie du consensus distribué et de la tolérance aux fautes byzantines.
