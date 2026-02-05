@@ -198,7 +198,7 @@ Cette implémentation est volontairement simplifiée à des fins pédagogiques. 
 * Support de **requêtes concurrentes**
 
 ---
-https://github.com/MOUAD-BELKOURI/-PBFT-Practical-Byzantine-Fault-Tolerance-/blob/main/pbft1.jpg?raw=true
+![image alt](https://github.com/MOUAD-BELKOURI/-PBFT-Practical-Byzantine-Fault-Tolerance-/blob/main/pbft1.jpg?raw=true)
 
 ## 12. Conclusion
 
