@@ -1,10 +1,6 @@
 # Implémentation et expérimentation du protocole PBFT avec MPI
 
 **Auteur : MOUAD BELKOURI**
-![C](https://img.shields.io/badge/Language-C-blue)
-![MPI](https://img.shields.io/badge/Communication-MPI-green)
-![PBFT](https://img.shields.io/badge/Consensus-PBFT-red)
-
 
 ---
 
