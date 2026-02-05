@@ -199,6 +199,7 @@ Cette implémentation est volontairement simplifiée à des fins pédagogiques. 
 
 ---
 ![image alt](https://github.com/MOUAD-BELKOURI/-PBFT-Practical-Byzantine-Fault-Tolerance-/blob/main/pbft1.jpg?raw=true)
+![image alt](https://github.com/MOUAD-BELKOURI/-PBFT-Practical-Byzantine-Fault-Tolerance-/blob/main/pbft2.jpg?raw=true)
 
 ## 12. Conclusion
 
