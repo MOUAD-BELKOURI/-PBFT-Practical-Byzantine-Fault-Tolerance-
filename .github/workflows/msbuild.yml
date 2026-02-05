@@ -23,4 +23,4 @@ jobs:
 
       - name: Run basic test
         run: |
-          mpirun --oversubscribe -np 4 ./pbft_mpi
+          mpirun --oversubscribe -np 5 ./pbft_mpi
